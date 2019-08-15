@@ -8,7 +8,7 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      time: moment().format("dd, Do MMMM, h:mm A"),
+      time: moment().format("h:mm A, dddd, MMMM Do, YYYY"),
       events: [],
       isBusy: false,
       isEmpty: false,
@@ -35,7 +35,7 @@ export default class App extends Component {
         })
         .then(function() {
           return gapi.client.request({
-            path: `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?maxResults=11&orderBy=updated&timeMin=${moment().toISOString()}&timeMax=${moment()
+            path: `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?maxResults=11&singleEvents=true&orderBy=startTime&timeMin=${moment().toISOString()}&timeMax=${moment()
               .endOf("day")
               .toISOString()}`
           });
@@ -77,7 +77,7 @@ export default class App extends Component {
   }
 
   tick = () => {
-    let time = moment().format("dddd, Do MMMM, h:mm A");
+    let time = moment().format("h:mm A, dddd, MMMM Do, YYYY");
     this.setState({
       time: time
     });
@@ -119,12 +119,10 @@ export default class App extends Component {
         >
           {event.summary}{" "}
           <span className="badge">
-            {moment(event.start.dateTime).format("h:mm a")},{" "}
-            {moment(event.end.dateTime).diff(
-              moment(event.start.dateTime),
-              "minutes"
-            )}{" "}
-            minutes, {moment(event.start.dateTime).format("MMMM Do")}{" "}
+            {moment(event.start.dateTime).format("h:mm a")}-
+            {moment(event.end.dateTime).format("h:mm a")}
+            {" "}
+            , {moment(event.start.dateTime).format("MMMM Do")}{" "}
           </span>
         </a>
       );
@@ -156,7 +154,7 @@ export default class App extends Component {
           <h1>{this.state.isBusy ? "BUSY" : "OPEN"}</h1>
         </div>
         <div className="upcoming-meetings">
-          <div className="current-time">{time}, 2018</div>
+          <div className="current-time">{time}</div>
           <h1>Upcoming Meetings</h1>
           <div className="list-group">
             {this.state.isLoading && loadingState}
