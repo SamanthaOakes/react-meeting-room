@@ -1,8 +1,14 @@
+// Forked from ...
+// Changes:
+//  * now uses outh so calendar does not need to be public
+//  * minor date formatting changes
+
 import React, { Component } from "react";
 import moment from "moment";
 import welcomeImage from "../images/welcome.svg";
 import spinner from "../images/spinner.svg";
-import { GOOGLE_API_KEY, CALENDAR_ID } from "../config.js";
+import { CLIENT_ID, CALENDAR_ID } from "../config.js";
+import gapi from 'gapi-client';
 
 export default class App extends Component {
   constructor(props) {
@@ -29,17 +35,23 @@ export default class App extends Component {
   getEvents() {
     let that = this;
     function start() {
-      gapi.client
+      gapi.auth2
         .init({
-          apiKey: GOOGLE_API_KEY
+          clientId: CLIENT_ID,
+          discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+          scope: "https://www.googleapis.com/auth/calendar.readonly"
         })
-        .then(function() {
-          return gapi.client.request({
-            path: `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?maxResults=11&singleEvents=true&orderBy=startTime&timeMin=${moment().toISOString()}&timeMax=${moment()
-              .endOf("day")
-              .toISOString()}`
-          });
-        })
+        .then(
+          function() {
+            if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
+              gapi.auth2.getAuthInstance().signIn();
+            }
+            return gapi.client.request({
+              path: `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?maxResults=11&singleEvents=true&orderBy=startTime&timeMin=${moment().toISOString()}&timeMax=${moment()
+                .endOf("day")
+                .toISOString()}`
+            })
+          })
         .then(
           response => {
             let events = response.result.items;
